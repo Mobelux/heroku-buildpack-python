@@ -2,7 +2,7 @@
 
 #
 # Create a Heroku app with the following buildpack:
-# https://github.com/ddollar/buildpack-tet
+# https://github.com/ddollar/buildpack-test
 #
 # Push this Python buildpack to that Heroku app to
 # run the tests.
@@ -64,13 +64,23 @@ BASE=$(pwd)
 popd >/dev/null
 
 source ${BASE}/vendor/test-utils
+mktmpdir() {
+  dir=$(mktemp -t testXXXXX)
+  rm -rf $dir
+  mkdir $dir
+  echo $dir
+}
 
 detect() {
   capture ${BASE}/bin/detect ${BASE}/test/$1
 }
 
+COMPILE_DIR=""
+
 compile() {
-  capture ${BASE}/bin/compile ${BASE}/test/$1
+  COMPILE_DIR=$(mktmpdir)
+  cp -r ${BASE}/test/$1/* ${COMPILE_DIR}/
+  capture ${BASE}/bin/compile ${COMPILE_DIR} $2
 }
 
 source ${BASE}/vendor/shunit2

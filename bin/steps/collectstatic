@@ -20,7 +20,6 @@ if [ ! "$DISABLE_COLLECTSTATIC" ]; then
     if [ "$RUN_COLLECTSTATIC" ]; then
 
         echo "-----> Collecting static files"
-        python $MANAGE_FILE fetchstatic 2>&1 | indent
         python $MANAGE_FILE collectstatic --noinput  2>&1 | sed '/^Copying/d;/^$/d;/^ /d' | indent
 
         [ $? -ne 0 ] && {

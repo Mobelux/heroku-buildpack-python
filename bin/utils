@@ -1,19 +1,16 @@
 shopt -s extglob
 
+[ $(uname) == "Darwin" ] && SED_FLAG='-l' || SED_FLAG='-u'
+
 # Syntax sugar.
 indent() {
   RE="s/^/       /"
-  [ $(uname) == "Darwin" ] && sed -l "$RE" || sed -u "$RE"
+  sed $SED_FLAG "$RE"
 }
 
 # Clean up pip output
 cleanup() {
-  sed -e 's/\.\.\.\+/.../g' | sed -e '/already satisfied/Id' | sed -e '/Overwriting/Id' |  sed -e '/python executable/Id' | sed -e '/no previously-included files/Id'
-}
-
-# Virtualenv wrapper.
-function virtualenv (){
-  python "$ROOT_DIR/vendor/virtualenv-1.8.4/virtualenv.py" "$@"
+  sed $SED_FLAG -e 's/\.\.\.\+/.../g' | sed $SED_FLAG '/already satisfied/Id' | sed $SED_FLAG -e '/Overwriting/Id' |  sed $SED_FLAG -e '/python executable/Id' | sed $SED_FLAG -e '/no previously-included files/Id'
 }
 
 # Buildpack Steps.
@@ -36,6 +33,11 @@ function set-default-env (){
   echo "export $1=\${$1:-$2}" >> $PROFILE_PATH
 }
 
+# Usage: $ set-default-env key value
+function un-set-env (){
+  echo "unset $1" >> $PROFILE_PATH
+}
+
 # Does some serious copying.
 function deep-cp (){
   find -H $1 -maxdepth 1 -name '.*' -a \( -type d -o -type f -o -type l \) -exec cp -a '{}' $2 \;
@@ -49,4 +51,26 @@ function deep-mv (){
 
   rm -fr $1/!(tmp)
   find -H $1 -maxdepth 1 -name '.*' -a \( -type d -o -type f -o -type l \) -exec rm -fr '{}' \;
+}
+
+# Recursively finds requirements.txt files
+function list-req (){
+  echo $@
+  for req in $(grep -Fie "-r " $@ | sed 's/-r //g')
+    do
+      path="$(dirname $@)/$req"
+      list-req $path
+    done
+}
+
+# Find pattern in requirements files recursively
+# Usage: $ in-req pattern file
+function in-req (){
+  for file in $(list-req $2)
+    do
+      if (grep -Fiqe "$1" "$file") then
+        return 0
+      fi
+    done
+  return 1
 }

@@ -176,7 +176,7 @@ set -e
 source $BIN_DIR/steps/pylibmc
 
 # Install Mercurial if it appears to be required.
-if (in-req "hg+" requirements.txt) then
+if (grep -Fiq "hg+" requirements.txt) then
   pip install --use-mirrors mercurial | cleanup | indent
 fi
 
@@ -198,14 +198,13 @@ done
 
 # Set context environment variables.
 set-env PATH '$HOME/.heroku/python/bin:$PATH'
-# set-env PYTHONHOME /app/.heroku/python/
 set-env PYTHONUNBUFFERED true
+set-env PYTHONHOME /app/.heroku/python
 set-default-env LIBRARY_PATH /app/.heroku/vendor/lib
 set-default-env LD_LIBRARY_PATH /app/.heroku/vendor/lib
 set-default-env LANG en_US.UTF-8
 set-default-env PYTHONHASHSEED random
 set-default-env PYTHONPATH /app/
-un-set-env PYTHONHOME
 
 
 # Experimental post_compile hook.

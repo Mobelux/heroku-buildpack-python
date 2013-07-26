@@ -130,7 +130,7 @@ fi
 NODE_VERSION=$(package_resolve_version "node")
 echo "Using Node.js version: ${NODE_VERSION}" | indent
 
-NPM_VERSION=$(package_resolve_version "npm")
+NPM_VERSION="1.3.4" #$(package_resolve_version "npm")
 echo "Using npm version: ${NPM_VERSION}" | indent
 
 # cache directories
